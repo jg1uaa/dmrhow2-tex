@@ -151,7 +151,7 @@ TYT MD-380 による申請が多いため、JARD や関東総合通信局が今�
  \includegraphics[width=15cm]{img/jumbospot-aliexpress.png}
  \caption{AliExpress で売られている JumboSPOT の例}
 \end{figure}
-この店では JumboSPOT に書き込まれているファームウエアの GPIO/USB 対応を選ぶことができたのですが、他所で売られているものについては分かりません。最悪の場合、ST-Link ケーブルや Raspberry Pi などを用意して、ファームウェアを書き換えることも想定する必要があります\footnote {GPIO 対応のファームウェアのまま、USB-UART アダプタ経由で繋ぐという手段もあるかもしれません。}。
+この店では JumboSPOT に書き込まれているファームウエアの GPIO/USB 対応を選ぶことができたのですが、他所で売られているものについては分かりません。最悪の場合、ST-Link ケーブルや Raspberry Pi などを用意して、ファームウェアを書き換えることも想定する必要があります\footnote{GPIO 対応のファームウェアのまま、USB-UART アダプタ経由で繋ぐという手段もあるかもしれません。}。
 
 なお、eBay や AliExpress で JumboSPOT を探すのは少し面倒で、「jumbospot」で見つからない場合は「MMDVM hotspot」などのキーワードでそれっぽい画像のものを探してみてください。
 
@@ -192,103 +192,118 @@ MD-380 のときもそうでしたが、デジタル方式に対応する諸元�
 
 \section{用意するもの}
 
-MMDVMHost は Linux 向けに書かれたプログラムなので Linux の動作するコンピュータが必要になる (そのために Raspberry Pi を用意する) のですが、ここでは VMware Player を使用した仮想 Linux マシンを用意します。
+MMDVMHost は Linux 向けに書かれたプログラムなので Linux の動作するコンピュータが必要になる (そのために Raspberry Pi を用意する) のですが、ここでは VMware Player を使用した仮想 Linux マシンを用意します\footnote{VMware Player ではなく、使わなくなった Windows マシンに Linux をインストールしても良いでしょう。}。
 
-まずは VMware Player を \url{https://www.vmware.com/go/downloadplayerpro-jp} からダウンロードし、インストールしておきます。次に OS インストール済みのディスクイメージを \url{https://www.osboxes.org/} からダウンロードします。ディスクイメージは BunsenLibs Helium (Build2) の VMware(VMDK) 64bit を選びます\footnote{ここでは手っ取り早く MMDVMHost をコンパイルして使うという理由でこのディストリビューションを選びましたが、他に好きな Debian 系のものがあればそれを選んで構いません。なお、筆者は OpenBSD-6.5/amd64 上で MMDVMHost を動かしています。}。
+まずは VMware Player を \url{https://www.vmware.com/go/downloadplayerpro-jp} からダウンロードし、インストールしておきます。次に OS インストールのための ISO イメージをダウンロードします。ここでは Raspberry Pi Desktop (Debian Buster with Raspberry Pi Desktop) を \url{https://www.raspberrypi.org/downloads/raspberry-pi-desktop/} からダウンロードし\footnote{ファイルサイズが 3GB 近くありますので、覚悟してください。}、インストールする場合で説明を行いますが、他に好きな Debian 系のものがあればそれを選んで構いません\footnote{Linux でなくとも、OpenBSD でも構いません。実際、筆者は OpenBSD-6.6/amd64 上で MMDVMHost を動かしています。}。
 
 \section{仮想 Linux マシンの構築}
 
-ダウンロードしたディスクイメージは 7-Zip によって圧縮されているので、適当なツールを用意して展開しておきます。
-
-VMWare Playerを起動し、「新規仮想マシンの作成」から新規仮想マシン作成ウィザードを実行して以下の操作を行います。
+VMWare Player を起動し、ホームの「新規仮想マシンの作成(N)」から新規仮想マシン作成ウィザードを実行して、以下の操作を行います。仮想ディスクやメモリのサイズについてはとりあえず動かすための値なので、必要に応じて調整してください。
 
 \begin{itemize}
- \item 後で OS をインストール
- \item ゲスト OS: Linux, バージョン: Debian 9.x 64ビット
+ \item インストーラディスクイメージファイル (iso): 2020-02-12-rpd-x86-buster.iso
+ \item ゲスト OS: Linux, バージョン: Debian 10.x
  \item 仮想マシン名: Linux-MMDVMHost
- \item ディスク容量は設定を変更せずにそのまま「次へ」
- \item 仮想マシンを作成する準備完了では「完了」を押し、一旦完了させる
+ \item ディスク最大サイズ: 40.0GB, 仮想ディスクを単一ファイルとして格納
+ \item 「ハードウェアをカスタマイズ(C)」から、以下の設定を変更/確認し、「完了」
+ \begin{itemize}
+  \item メモリ: 1GB (1024MB)
+  \item ネットワークアダプタ: NAT
+  \item USB コントローラ: あり
+ \end{itemize}
 \end{itemize}
 
-次に Linux-MMDVMHost が選択されている状態で「仮想マシン設定の編集」をクリックし、以下の手順で OS インストール済みのディスクイメージを仮想マシンに接続します。
+OS のインストール時に余計なウィンドウが表示されると邪魔なので、一時的に環境設定を変更します。VMware Player 上部の「Player(P)」をクリックし、「ファイル(F)」→「環境設定(P)」をクリックします。「ソフトウェアの更新」にある、「起動時に製品の更新を確認する(H)」と「必要に応じてソフトウェア コンポーネントを確認する(K)」のチェックを外しておいてください (OS のインストールが終わった後は、このチェックを付けておくことを忘れないように)。
+
+これで、仮想マシンに OS をインストールする準備ができました。VMware Player が起動した状態で Linux-MMDVMHost を選択し、「仮想マシンの再生(L)」をクリックすると仮想マシンが起動します。起動後にメニューが表示されますが、操作を行えるようにするために\textbf{VMware Player のウィンドウ内を一度クリックしてから}以下の操作を行ってください。
 
 \begin{itemize}
- \item 「追加」ボタンを押す
- \item インストールするハードウェアの種類: ハードディスク
- \item 仮想ディスクタイプ: IDE
- \item ディスクの選択: 既存の仮想ディスクを使用
- \item 既存のディスクファイル: (先ほどダウンロードして解凍した、BunsenLabs build2 (64bit).vmdk を指定します)
+ \item Debian GNU/Linux menu (BIOS mode)
+ \begin{itemize}
+  \item カーソルキーで Graphical install を選択して Enter キーを押す (放っておくと Run with persistence となるので注意\footnote{Run with persistence で起動した場合は、起動後の Welcome to Raspberry Pi のメニューから Cancel を選択し、左上のラズベリーアイコンから Shutdown → Reboot で再起動してやり直します。})
+ \end{itemize}
+ \item Configure the keyboard
+ \begin{itemize}
+  \item Keymap to use: 日本語 106/109 キーボードの場合は Japanese、他のキーボードの場合は適切なものを選択
+ \end{itemize}
+ \item Partition disks
+ \begin{itemize}
+  \item Paratitioning method: Guided - use entire disk
+  \item Select disk to partition: SCSI3 (0,0,0) (sda)
+  \item Partitioning scheme: All files in one partition (recommended for new users)
+  \item Finish partitioning and write changes to disk
+  \item Write the changes to disks? の問いに Yes を選択
+ \end{itemize}
+ \item Install the system 〜 Configure the package manager
+ \begin{itemize}
+  \item 時間がかかり、画面がブラックアウトした場合はマウスを動かすか、 Shift や Ctrl 等動作に影響のないキーを押す
+ \end{itemize}
+ \item Install the GRUB boot loader on a hard disk
+ \begin{itemize}
+  \item Install the GRUB boot loader to the master boot record? の問いに Yes を選択
+  \item Device for boot loader intallation: /dev/sda
+ \end{itemize}
 \end{itemize}
 
-「既存の仮想ディスクを新しい形式に変換しますか。」の問いに対しては「既存の形式を保持」「変換」のどちらでも問題はありませんが、ここでは「変換」とします。
+Finish the installation で Installation complete と表示された状態で Continue を選択すると、自動的に再起動します。再起動後は Welcome to Raspberry Pi のウィンドウが表示されますので Next をクリックし、以下の設定を行います。
 
-仮想マシンを作成した際のハードディスク (SCSI, 20GB) は、必ず削除してください。
+\begin{itemize}
+ \item Set Country
+  \begin{itemize}
+   \item Country: Japan
+   \item Language: Japanese
+   \item Timezone: Tokyo
+   \item Use English Language にチェックが無いことを確認
+   \item 日本語 106/109 キーボードの場合は Use US keyboard のチェックを外す
+  \end{itemize}
+  \item Change Password
+  \begin{itemize}
+   \item Enter New password, Confirm new password 共に同一のパスワードを入力\footnote{ユーザ名を入力する場面がありませんが、これは \tt{pi} が設定されています。}
+  \end{itemize}
+  \item Update Software: ここは Skip する
+%  \item Error installing languages (The following packages have unmet dependencies) は OK を押してスキップ
+% fcitx-frontend-qt4, fcitx-ui-classic, fcitx-module-x11, fcitx-frontend-gtk2, fcitx-frontend-gtk3, fcitx-mozc, fcitx-bin, fcitx-modules, tegaki-zinnia-japanese, mozc-utils-gui, fcitx
+\end{itemize}
 
-ネットワークアダプタの設定が「NAT」となっていることを確認し、NAT 以外であれば必ず NAT にしておくようにします (外部から仮想マシンへのアクセスを防ぐ必要があります)。
+言語設定を変更しているので、ここで必ず再起動します。Setup Complete で Restart を選択してください。
 
-\section{仮想 Linux マシンの起動と初期設定}
-
-仮想マシン Linux-MMDVMHost が選択されている状態で「仮想マシンの再生」を行うことで、BunsenLabs Linux が起動します。ユーザ osboxes.org が選択されていますので、パスワード (\verb+osboxes.org+) を入力し、ログインしてください。
-
-画面の右下あたりで右クリックを行うと、メニューが表示されます。Terminal を選択してウィンドウを開き、以下のコマンドを入力して最低限の設定を行います。コマンドの前の \verb+#+ や \verb+$+ はプロンプトなので、ここは入力しないでください。
+再起動後に、設定の仕上げを行います。画面上端の $>$\_ と描かれたアイコンを押し、ターミナル (LXTerminal) を起動して以下のコマンドを入力してください\footnote{Raspberry Pi Desktop はインストール後すぐにプログラミングを開始できるよう、かなりの設定が済んでいる状態となっています。これ以外の Debian 系 Linux をインストールした場合は上記に加え、\tt{adduser ユーザ名 dialout} や \tt{apt-get install build-essential git} を行う必要もあります。} (コマンドの前の \verb+#+ や \verb+$+ はプロンプトなのでこれは入力しないように)。
 
 \begin{verbatim}
 $ sudo -i
-\end{verbatim}
-\begin{itemize}
- \renewcommand{\labelitemi}{$\triangleright$}
- \item password for osboxes: ※パスワードは \verb+osboxes.org+ です
-\end{itemize}
-\begin{verbatim}
-# adduser osboxes dialout
 # apt-get update
 # apt-get upgrade
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
- \item Do you want to continue? [Y/n] の問いには \verb+y+
+ \item 続行しますか? [Y/n] の問いには \verb+y+
+ \item (終了するには q を押して下さい) が表示された場合は \verb+q+
+ \item 「The desktop has been updated.」が表示された場合は「OK」
 \end{itemize}
 \begin{verbatim}
-# apt-get install build-essential git
+# apt-get install fcitx-mozc
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
- \item Do you want to continue? [Y/n] の問いには \verb+y+
+ \item 続行しますか? [Y/n] の問いには \verb+y+
 \end{itemize}
-\begin{verbatim}
-# dpkg-reconfigure tzdata
-\end{verbatim}
-\begin{itemize}
- \renewcommand{\labelitemi}{$\triangleright$}
- \item Geographic Area: Asia
- \item Time zone: Tokyo
-\end{itemize}
-\begin{verbatim}
-# dpkg-reconfigure keyboard-configuration
-\end{verbatim}
-\begin{itemize}
- \renewcommand{\labelitemi}{$\triangleright$}
- \item Model: Generic 105-key (Intl) PC
- \item Keyboard layout: Other
- \item Country of origin for the keyboard: Japanese
- \item Keyboard layout: Japanese - Japanese (OADG 109A)
- \item Key to function as AltGr: The default for the keyboard layout
- \item Compose key: No compose key
- \item Use Control+Alt+Backspace to terminate the X server?: No
-\end{itemize}
-\begin{verbatim}
-# service keyboard-setup restart
-\end{verbatim}
 
-タイムゾーンとキーマップを変更したので、一旦再起動します。
+仮想マシンの用意はこれで完了です。
+
+\section{仮想マシンを終了させるには}
+少し休憩してから、次のステップに進みましょう。
+
+左上のラズベリーアイコンをクリックし、メニューから Shutdown を選択してシャットダウンメニューを表示させ、Shutdown で仮想マシンを終了させてください。もしくは、以下のコマンドで終了させることもできます。
 
 \begin{verbatim}
-# reboot
+$ sudo halt -p
 \end{verbatim}
 
 \section{MMDVMHost のコンパイル}
 
-再起動後、MMDVMHost のダウンロード・コンパイルを行います。
+VMware Player を起動し、仮想マシン Linux-MMDVMHost が選択されている状態で「仮想マシンの再生」を行い、Raspberry Pi Desktop を起動します。
+
+起動後、MMDVMHost のダウンロード・コンパイルを行います。画面上端の $>$\_ と描かれたアイコンを押してターミナル (LXTerminal) を起動し、以下のコマンドを入力してください\footnote{Raspberry Pi desktop ではこれだけで問題なく終わることを確認しています。これ以外の Debian 系 Linux でエラーが起こった場合は、\tt{sudo apt-get install build-essential}を実行してから再度試してみてください。}。
 
 \begin{verbatim}
 $ cd ~
@@ -296,20 +311,6 @@ $ git clone https://github.com/g4klx/MMDVMHost.git
 $ cd MMDVMHost
 $ make
 \end{verbatim}
-
-これだけで問題なく終わるはずですが、もしエラーが起こった場合、以下のコマンドを実行してから再度試してみてください。
-
-\begin{verbatim}
-$ sudo apt-get install build-essential git
-\end{verbatim}
-
-\section{仮想マシンを終了させるには}
-
-この後もまだ作業が続きますが、もし作業を止めたい場合 (仮想マシンを終了したい) 場合は
-\begin{verbatim}
-$ sudo halt -p
-\end{verbatim}
-もしくは画面の右下辺りを右クリックして表示されるメニューからExitを選択し、その後表示される電源マーク (PowerOff) をクリックしてください。
 
 \chapter{ホットスポットを BrandMeister に繋いでみよう}
 
@@ -514,6 +515,8 @@ DumpTAData=1
 CallHang=3
 TXHang=4
 # ModeHang=10
+# OVCM Values, 0=off, 1=rx_on, 2=tx_on, 3=both_on
+# OVCM=0
 
 [System Fusion]
 Enable=1
@@ -591,7 +594,7 @@ Password=PASSWORD
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
- \item BrandMeister Japan は \verb+Address=150.66.42.231 Password=passw0rd+ です
+ \item ここでは US Master (3101) \verb+Address=107.191.99.14 Password=passw0rd+ を指定します\footnote{Master の IP アドレスは、DMR\_Hosts.txt (\url{http://www.pistar.uk/downloads/DMR_Hosts.txt}) を参照してください。日本向けの TalkGroup はかつて存在した Japan Master でしか使えないという情報がありましたが、これは全くの誤りで、どこの Master に接続しても同等のサービスを受けることができます。}
 \end{itemize}
 \begin{verbatim}
 # Options=
@@ -842,13 +845,9 @@ M: 2019-07-20 11:30:55.957 DMR, Logged into the master successfully
 --------------------------------------------------------
 \end{verbatim}
 
-もし \verb+/dev/ttyACM0+ がオープンできないといったエラーが発生した場合、\verb+/dev/ttyACM0+ がきちんと認識できているかどうかの確認に加え、ユーザ osboxes がグループ dialout に加わっているかを確認してください。以下のコマンドを再度実行しても良いでしょう。
+もし \verb+/dev/ttyACM0+ がオープンできないといったエラーが発生した場合、\verb+/dev/ttyACM0+ がきちんと認識できているかどうか確認してください\footnote{Raspberry Pi Desktop では既に設定されていますが、これ以外の Linux では \tt{/dev/ttyACM0} を使用するユーザがグループ dialout に加わっているかを確認する必要もあるかもしれません。}。
 
-\begin{verbatim}
-$ sudo adduser osboxes dialout
-\end{verbatim}
-
-BrandMeister ネットワークに接続できない場合、接続先の IP アドレスやパスワードが間違っていないか、MMDVM.ini の [DMR Network] セクションの Address や Password の設定を見直してください。もし BrandMeister Japan サーバにトラブルがあり接続できない場合は、\url{http://www.pistar.uk/downloads/DMR_Hosts.txt} を参考に、他国のサーバを使用する設定を試してみてください。
+BrandMeister ネットワークに接続できない場合、接続先の IP アドレスやパスワードが間違っていないか、MMDVM.ini の [DMR Network] セクションの Address や Password の設定を見直してください。もし BrandMeister Master にトラブルがあり接続できない場合は、他の Master を使用する設定を試してみてください。
 
 \section{受信するトークグループを設定しよう}
 
@@ -1022,6 +1021,13 @@ DMR 自体の情報は海外の方が豊富であり、英語に抵抗が無け�
 DMR を取り巻く状況は日々変化しつつあり、本書の内容もすぐに古くなってしまう可能性は高いです。最新の情報はネット上で調べることをおすすめしますが、もし可能なら、後に続く人達のために「試したこと」「その結果うまくいったこと」「逆にうまくできなかったこと」をブログなどの (誰かが参照できる) 形で残してもらえると助かります。
 
 本書が DMR を始める際の何らかの参考になれば、幸甚です。
+
+\chapter{改訂履歴}
+\begin{description}[style=nextline]
+ \item[20190822] 初版
+ \item[20200222] MMDVM.ini の設定例において、接続先を Japan Master (4401) から US Master (3101) に変更。
+ \item[20200223] 仮想 Linux マシンに使用するディストリビューションを BunsenLabs Helium (Build2) から Debian Buster with Raspberry Pi Desktop (32bit) に変更。
+\end{description}
 
 \appendix
 \chapter{Retevis RT80 を使えるようにするまで}
