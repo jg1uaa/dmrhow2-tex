@@ -64,10 +64,10 @@ Pi-Star 等のホットスポットを構成するソフトウェアは、オー
 
 \section{ID が無いと始まらない}
 
-DMRの世界では、7桁のID (DMR ID) がコールサインの代わりとなります。この ID が無いと何も始まらないので、\url{https://www.radioid.net/register} へアクセスし、ここから画面の指示に従って操作を行えば取得できます (日本語のページは今のところありません)。
+DMR の世界では、7 桁の ID (DMR ID) がコールサインの代わりとなります。この ID が無いと何も始まらないので、\url{https://www.radioid.net/register} へアクセスし、ここから画面の指示に従って操作を行えば取得できます (日本語のページは今のところありません)。
 \begin{figure}[H]
  \centering
- \includegraphics[width=15cm]{img/radioid_net.png}
+ \includegraphics[width=15cm]{img/radioid_net2.png}
  \caption{radioid.net のトップページ}
 \end{figure}
 DMR の無線機とホットスポットを運用する場合、機材は二つありますが ID は一つあれば問題ありません。同じ ID を両方の機材に設定して使うことになります。
@@ -288,7 +288,7 @@ $ sudo -i
  \item 続行しますか? [Y/n] の問いには \verb+y+
 \end{itemize}
 
-仮想マシンの用意はこれで完了です。
+仮想マシンの用意はこれで完了です\footnote{\tt{apt-get install fcitx-mozc} により、日本語入力ができるようになっています。入力の切り替えは全角/半角キーもしくは Ctrl+Space で行いますが、Emacs を使用する場合は \tt{fcitx-config-gtk3} を使用し、「全体の設定」タブにある「入力メソッドのオンオフ」で Ctrl+Space を Shift+Space に変更しておくと良いでしょう。}。
 
 \section{仮想マシンを終了させるには}
 少し休憩してから、次のステップに進みましょう。
@@ -318,6 +318,16 @@ $ make
 アカウントを持たなくても BrandMeister ネットワークへの接続は可能ですが、ホットスポットに対する設定を行えるようにするため、最初に BrandMeister のアカウントを取得します。
 
 \url{https://brandmeister.network/?page=register} へアクセスし、画面に表示された質問 (コールサイン・メールアドレス・パスワード等の項目) を埋めればアカウントの取得ができますが、申請してから実際に取得できるまでに時間がかかるため、この作業は最初に行っておくのが良いでしょう。Account Type は Personal User Account を選択してください。
+
+\section{ホットスポットのパスワードを設定する}
+
+ホットスポット上で動作する MMDVMHost が BrandMeister ネットワークへ接続する際、かつては Master (サーバ) 毎に設定される passw0rd 等のデフォルトのパスワードのままで問題ないとされていたのですが、2020 年 4 月頃からパスワードを設定することが推奨されています。BrandMeister アカウントを取得した後、SelfCare Settings (\url{https://brandmeister.network/?page=selfcare}) へアクセスし、以下の操作を行ってください。
+\begin{itemize}
+ \item HotSpot Security を On
+ \item Password にパスワードを記述
+ \item Save を押して保存
+\end{itemize}
+なお、このパスワードは Master 間で共通のものとなります。
 
 \section{JumboSPOT の接続を確認する}
 
@@ -384,6 +394,7 @@ TXFrequency=435000000
 \end{itemize}
 \begin{verbatim}
 Power=1
+# The following lines are only needed if a direct connection to a DMR master is being used
 Latitude=0.0
 Longitude=0.0
 Height=0
@@ -403,6 +414,7 @@ DisplayLevel=1
 FileLevel=1
 FilePath=.
 FileRoot=MMDVM
+FileRotate=1
 
 [CW Id]
 Enable=1
@@ -426,7 +438,7 @@ Time=24
 [Modem]
 # Port=/dev/ttyACM0
 # Port=/dev/ttyAMA0
-Port=\\.\COM3
+Port=\\.\COM4
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
@@ -461,7 +473,9 @@ RFLevel=100
 # P25TXLevel=50
 # NXDNTXLevel=50
 # POCSAGTXLevel=50
+# FMTXLevel=50
 RSSIMappingFile=RSSI.dat
+UseCOSAsLockout=0
 Trace=0
 Debug=0
 
@@ -493,6 +507,7 @@ AckMessage=0
 ErrorReply=1
 RemoteGateway=0
 # ModeHang=10
+WhiteList=
 
 [DMR]
 Enable=1
@@ -529,7 +544,6 @@ Enable=1
 LowDeviation=0
 SelfOnly=0
 TXHang=4
-#DGID=1
 RemoteGateway=0
 # ModeHang=10
 
@@ -545,6 +559,7 @@ NAC=293
 SelfOnly=0
 OverrideUIDCheck=0
 RemoteGateway=0
+TXHang=5
 # ModeHang=10
 
 [NXDN]
@@ -558,6 +573,7 @@ Enable=1
 RAN=1
 SelfOnly=0
 RemoteGateway=0
+TXHang=5
 # ModeHang=10
 
 [POCSAG]
@@ -569,6 +585,46 @@ Enable=1
 \end{itemize}
 \begin{verbatim}
 Frequency=439987500
+
+[FM]
+Enable=1
+\end{verbatim}
+\begin{itemize}
+ \renewcommand{\labelitemi}{$\triangleright$}
+ \item FM は使用しないので \verb+Enable=0+ とします
+\end{itemize}
+\begin{verbatim}
+# Callsign=G4KLX
+CallsignSpeed=20
+CallsignFrequency=1000
+CallsignTime=10
+CallsignHoldoff=0
+CallsignHighLevel=50
+CallsignLowLevel=20
+CallsignAtStart=1
+CallsignAtEnd=1
+CallsignAtLatch=0
+RFAck=K
+ExtAck=N
+AckSpeed=20
+AckFrequency=1750
+AckMinTime=4
+AckDelay=1000
+AckLevel=50
+# Timeout=180
+TimeoutLevel=80
+CTCSSFrequency=88.4
+CTCSSThreshold=30
+# CTCSSHighThreshold=30
+# CTCSSLowThreshold=20
+CTCSSLevel=20
+KerchunkTime=0
+HangTime=7
+AccessMode=1
+COSInvert=0
+RFAudioBoost=1
+MaxDevLevel=90
+ExtAudioBoost=1
 
 [D-Star Network]
 Enable=1
@@ -586,20 +642,29 @@ Debug=0
 
 [DMR Network]
 Enable=1
-Address=44.131.4.1
-Port=62031
-Jitter=360
-# Local=62032
-Password=PASSWORD
+# Type may be either 'Direct' or 'Gateway'. When Direct you must provide the Master's
+# address as well as the Password, and for DMR+, Options also.
+Type=Gateway
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
- \item ここでは US Master (3101) \verb+Address=107.191.99.14 Password=passw0rd+ を指定します\footnote{Master の IP アドレスは、DMR\_Hosts.txt (\url{http://www.pistar.uk/downloads/DMR_Hosts.txt}) を参照してください。日本向けの TalkGroup はかつて存在した Japan Master でしか使えないという情報がありましたが、これは全くの誤りで、どこの Master に接続しても同等のサービスを受けることができます。}
+ \item DMRGateway を使用しないので \verb+Type=Direct+ とします (省略した場合、\verb+Type=Gateway+ と同義です)
 \end{itemize}
 \begin{verbatim}
-# Options=
+Address=127.0.0.1
+Port=62031
+Local=62032
+# Password=P@ssw0rd1234
+\end{verbatim}
+\begin{itemize}
+ \renewcommand{\labelitemi}{$\triangleright$}
+ \item ここでは US Master (3101) \verb+Address=107.191.99.14 Password=+(BrandMeister の HotSport Security で設定したパスワード) を指定します\footnote{Master の IP アドレスは、DMR\_Hosts.txt (\url{http://www.pistar.uk/downloads/DMR_Hosts.txt}) を参照してください。日本向けの TalkGroup はかつて存在した Japan Master でしか使えないという情報がありましたが、これは全くの誤りで、どこの Master に接続しても同等のサービスを受けることができます。}
+\end{itemize}
+\begin{verbatim}
+Jitter=360
 Slot1=1
 Slot2=1
+# Options=
 # ModeHang=3
 Debug=0
 
@@ -640,6 +705,7 @@ Enable=1
  \item NXDN は使用しないので \verb+Enable=0+ とします
 \end{itemize}
 \begin{verbatim}
+Protocol=Icom
 LocalAddress=127.0.0.1
 LocalPort=14021
 GatewayAddress=127.0.0.1
@@ -704,6 +770,7 @@ Invert=0
 Scroll=1
 Rotate=0
 Cast=0
+LogoScreensaver=1
 
 [LCDproc]
 Address=localhost
@@ -716,11 +783,6 @@ UTC=0
 [Lock File]
 Enable=0
 File=/tmp/MMDVM_Active.lck
-
-[Mobile GPS]
-Enable=0
-Address=127.0.0.1
-Port=7834
 
 [Remote Control]
 Enable=0
@@ -748,100 +810,105 @@ MMDVMHost は引数を指定しない場合、\verb+/etc/MMDVM.ini+ を参照し
 \begin{verbatim}
 --------------------------------------------------------
 $ ./MMDVMHost ./MMDVM.ini
-I: 2019-07-20 11:30:43.616 This software is for use on amateur radio 
+I: 2020-12-13 01:40:43.080 This software is for use on amateur radio 
 networks only,
-I: 2019-07-20 11:30:43.616 it is to be used for educational purposes 
+I: 2020-12-13 01:40:43.080 it is to be used for educational purposes 
 only. Its use on
-I: 2019-07-20 11:30:43.616 commercial networks is strictly prohibited.
-I: 2019-07-20 11:30:43.616 Copyright(C) 2015-2018 by Jonathan Naylor,
+I: 2020-12-13 01:40:43.080 commercial networks is strictly prohibited.
+I: 2020-12-13 01:40:43.080 Copyright(C) 2015-2020 by Jonathan Naylor,
  G4KLX and others
-M: 2019-07-20 11:30:43.616 MMDVMHost-20190131 is starting
-M: 2019-07-20 11:30:43.616 Built 23:02:08 Jun 20 2019 (GitID #0b9c1b1)
-I: 2019-07-20 11:30:43.616 General Parameters
-I: 2019-07-20 11:30:43.616     Callsign: XXXXXX
-I: 2019-07-20 11:30:43.616     Id: XXXXXXX
-I: 2019-07-20 11:30:43.616     Duplex: no
-I: 2019-07-20 11:30:43.616     Timeout: 180s
-I: 2019-07-20 11:30:43.616     D-Star: disabled
-I: 2019-07-20 11:30:43.616     DMR: enabled
-I: 2019-07-20 11:30:43.616     YSF: disabled
-I: 2019-07-20 11:30:43.616     P25: disabled
-I: 2019-07-20 11:30:43.616     NXDN: disabled
-I: 2019-07-20 11:30:43.616     POCSAG: disabled
-I: 2019-07-20 11:30:43.616 Modem Parameters
-I: 2019-07-20 11:30:43.616     Port: /dev/ttyACM0
-I: 2019-07-20 11:30:43.616     Protocol: uart
-I: 2019-07-20 11:30:43.616     RX Invert: no
-I: 2019-07-20 11:30:43.616     TX Invert: yes
-I: 2019-07-20 11:30:43.616     PTT Invert: no
-I: 2019-07-20 11:30:43.616     TX Delay: 100ms
-I: 2019-07-20 11:30:43.616     RX Offset: 1100Hz
-I: 2019-07-20 11:30:43.616     TX Offset: 1100Hz
-I: 2019-07-20 11:30:43.616     RX DC Offset: 0
-I: 2019-07-20 11:30:43.617     TX DC Offset: 0
-I: 2019-07-20 11:30:43.617     RF Level: 100.0%
-I: 2019-07-20 11:30:43.617     DMR Delay: 0 (0.0ms)
-I: 2019-07-20 11:30:43.617     RX Level: 50.0%
-I: 2019-07-20 11:30:43.617     CW Id TX Level: 50.0%
-I: 2019-07-20 11:30:43.617     D-Star TX Level: 50.0%
-I: 2019-07-20 11:30:43.617     DMR TX Level: 50.0%
-I: 2019-07-20 11:30:43.617     YSF TX Level: 50.0%
-I: 2019-07-20 11:30:43.617     P25 TX Level: 50.0%
-I: 2019-07-20 11:30:43.617     NXDN TX Level: 50.0%
-I: 2019-07-20 11:30:43.617     POCSAG TX Level: 50.0%
-I: 2019-07-20 11:30:43.617     RX Frequency: XXXXX0000Hz (XXXXX1100Hz)
-I: 2019-07-20 11:30:43.617     TX Frequency: XXXXX0000Hz (XXXXX1100Hz)
-M: 2019-07-20 11:30:43.617 Opening the MMDVM
-I: 2019-07-20 11:30:45.647 MMDVM protocol version: 1, description: MM
-DVM_HS_Hat-v1.4.14 20181209 14.7456MHz ADF7021 FW by BG7IYN (Build: 1
-5:46:40 Dec 15 2018)
-I: 2019-07-20 11:30:45.687 Display Parameters
-I: 2019-07-20 11:30:45.687     Type: None
-W: 2019-07-20 11:30:45.687 No valid display found, disabling
-I: 2019-07-20 11:30:45.688 DMR Network Parameters
-I: 2019-07-20 11:30:45.688     Address: 150.66.42.231
-I: 2019-07-20 11:30:45.688     Port: 62031
-I: 2019-07-20 11:30:45.688     Local: random
-I: 2019-07-20 11:30:45.688     Jitter: 360ms
-I: 2019-07-20 11:30:45.688     Slot 1: enabled
-I: 2019-07-20 11:30:45.688     Slot 2: enabled
-I: 2019-07-20 11:30:45.688     Mode Hang: 3s
-I: 2019-07-20 11:30:45.688 Info Parameters
-I: 2019-07-20 11:30:45.688     Callsign: JG1UAA
-I: 2019-07-20 11:30:45.688     RX Frequency: XXXXX0000Hz
-I: 2019-07-20 11:30:45.688     TX Frequency: XXXXX0000Hz
-I: 2019-07-20 11:30:45.688     Power: 1W
-I: 2019-07-20 11:30:45.688     Latitude: X.XXXXXXdeg N
-I: 2019-07-20 11:30:45.688     Longitude: X.XXXXXXdeg E
-I: 2019-07-20 11:30:45.688     Height: Xm
-I: 2019-07-20 11:30:45.688     Location: "XXXXXXXXXXXXXX"
-I: 2019-07-20 11:30:45.688     Description: "XXXXXXXXXXXXXXXXXXX"
-I: 2019-07-20 11:30:45.688     URL: "XXXXXXXXXXXXXX"
-M: 2019-07-20 11:30:45.688 DMR, Opening DMR Network
-I: 2019-07-20 11:30:45.688 RSSI
-I: 2019-07-20 11:30:45.688     Mapping File: RSSI.dat
-I: 2019-07-20 11:30:45.688 Loaded 0 RSSI data mapping points from RSS
+M: 2020-12-13 01:40:43.080 MMDVMHost-20201209 is starting
+M: 2020-12-13 01:40:43.080 Built 10:29:40 Dec 13 2020 (GitID #6e05225)
+I: 2020-12-13 01:40:43.080 General Parameters
+I: 2020-12-13 01:40:43.080     Callsign: XXXXXX
+I: 2020-12-13 01:40:43.080     Id: XXXXXXX
+I: 2020-12-13 01:40:43.080     Duplex: no
+I: 2020-12-13 01:40:43.080     Timeout: 180s
+I: 2020-12-13 01:40:43.080     D-Star: disabled
+I: 2020-12-13 01:40:43.080     DMR: enabled
+I: 2020-12-13 01:40:43.080     YSF: disabled
+I: 2020-12-13 01:40:43.080     P25: disabled
+I: 2020-12-13 01:40:43.080     NXDN: disabled
+I: 2020-12-13 01:40:43.080     POCSAG: enabled
+I: 2020-12-13 01:40:43.080     FM: disabled
+I: 2020-12-13 01:40:43.080 Modem Parameters
+I: 2020-12-13 01:40:43.080     Port: /dev/ttyACM0
+I: 2020-12-13 01:40:43.080     Protocol: uart
+I: 2020-12-13 01:40:43.080     RX Invert: no
+I: 2020-12-13 01:40:43.080     TX Invert: yes
+I: 2020-12-13 01:40:43.080     PTT Invert: no
+I: 2020-12-13 01:40:43.080     TX Delay: 100ms
+I: 2020-12-13 01:40:43.080     RX Offset: 1100Hz
+I: 2020-12-13 01:40:43.080     TX Offset: 1100Hz
+I: 2020-12-13 01:40:43.080     RX DC Offset: 0
+I: 2020-12-13 01:40:43.080     TX DC Offset: 0
+I: 2020-12-13 01:40:43.080     RF Level: 100.0%
+I: 2020-12-13 01:40:43.080     DMR Delay: 0 (0.0ms)
+I: 2020-12-13 01:40:43.080     RX Level: 50.0%
+I: 2020-12-13 01:40:43.080     CW Id TX Level: 50.0%
+I: 2020-12-13 01:40:43.080     D-Star TX Level: 50.0%
+I: 2020-12-13 01:40:43.080     DMR TX Level: 50.0%
+I: 2020-12-13 01:40:43.080     YSF TX Level: 50.0%
+I: 2020-12-13 01:40:43.080     P25 TX Level: 50.0%
+I: 2020-12-13 01:40:43.080     NXDN TX Level: 50.0%
+I: 2020-12-13 01:40:43.080     POCSAG TX Level: 50.0%
+I: 2020-12-13 01:40:43.080     FM TX Level: 50.0%
+I: 2020-12-13 01:40:43.080     TX Frequency: XXXXX0000Hz (XXXXX1100Hz)
+I: 2020-12-13 01:40:43.080     Use COS as Lockout: no
+M: 2020-12-13 01:40:43.081 Opening the MMDVM
+I: 2020-12-13 01:40:45.130 MMDVM protocol version: 1, description: MM
+DVM_HS_Hat-v1.5.1b 20191201 14.7456MHz ADF7021 FW by CA6JAU GitID #ec
+4fd74
+I: 2020-12-13 01:40:45.170 Display Parameters
+I: 2020-12-13 01:40:45.170     Type: None
+I: 2020-12-13 01:40:45.170 No valid display found, disabling
+I: 2020-12-13 01:40:45.540 DMR Network Parameters
+I: 2020-12-13 01:40:45.540     Type: Direct
+I: 2020-12-13 01:40:45.540     Address: 107.191.99.14
+I: 2020-12-13 01:40:45.540     Port: 62031
+I: 2020-12-13 01:40:45.540     Local: 62032
+I: 2020-12-13 01:40:45.540     Jitter: 360ms
+I: 2020-12-13 01:40:45.540     Slot 1: enabled
+I: 2020-12-13 01:40:45.540     Slot 2: enabled
+I: 2020-12-13 01:40:45.540     Mode Hang: 3s
+I: 2020-12-13 01:40:45.541 Info Parameters
+I: 2020-12-13 01:40:45.541     Callsign: XXXXXX
+I: 2020-12-13 01:40:45.541     RX Frequency: XXXXX0000Hz
+I: 2020-12-13 01:40:45.541     TX Frequency: XXXXX0000Hz
+I: 2020-12-13 01:40:45.541     Power: 1W
+I: 2020-12-13 01:40:45.541     Latitude: X.XXXXXXdeg N
+I: 2020-12-13 01:40:45.541     Longitude: X.XXXXXXdeg E
+I: 2020-12-13 01:40:45.541     Height: Xm
+I: 2020-12-13 01:40:45.541     Location: "XXXXXXXXXXXXXX"
+I: 2020-12-13 01:40:45.541     Description: "XXXXXXXXXXXXXXXXXXX"
+I: 2020-12-13 01:40:45.541     URL: "XXXXXXXXXXXXXX"
+M: 2020-12-13 01:40:45.541 Opening DMR Network
+I: 2020-12-13 01:40:45.541 RSSI
+I: 2020-12-13 01:40:45.541     Mapping File: RSSI.dat
+I: 2020-12-13 01:40:45.541 Loaded 0 RSSI data mapping points from RSS
 I.dat
-I: 2019-07-20 11:30:45.688 DMR Id Lookups
-I: 2019-07-20 11:30:45.688     File: DMRIds.dat
-I: 2019-07-20 11:30:45.688     Reload: 24 hours
-I: 2019-07-20 11:30:45.805 Loaded 109242 Ids to the DMR callsign look
-up table
-I: 2019-07-20 11:30:45.806 Started the DMR Id lookup reload thread
-I: 2019-07-20 11:30:45.806 DMR RF Parameters
-I: 2019-07-20 11:30:45.806     Id: XXXXXXX
-I: 2019-07-20 11:30:45.806     Color Code: 1
-I: 2019-07-20 11:30:45.806     Self Only: no
-I: 2019-07-20 11:30:45.806     Embedded LC Only: no
-I: 2019-07-20 11:30:45.806     Dump Talker Alias Data: yes
-I: 2019-07-20 11:30:45.806     Prefixes: 0
-I: 2019-07-20 11:30:45.806     Call Hang: 3s
-I: 2019-07-20 11:30:45.806     TX Hang: 3s
-I: 2019-07-20 11:30:45.806     Mode Hang: 10s
-M: 2019-07-20 11:30:45.807 MMDVMHost-20190131 is running
-D: 2019-07-20 11:30:55.857 DMR, Sending authorisation
-D: 2019-07-20 11:30:55.897 DMR, Sending configuration
-M: 2019-07-20 11:30:55.957 DMR, Logged into the master successfully
+I: 2020-12-13 01:40:45.541 DMR Id Lookups
+I: 2020-12-13 01:40:45.541     File: DMRIds.dat
+I: 2020-12-13 01:40:45.541     Reload: 24 hours
+I: 2020-12-13 01:40:47.272 Loaded 180628 IDs to lookup table - DMRIds.dat
+I: 2020-12-13 01:40:47.272 DMR RF Parameters
+I: 2020-12-13 01:40:47.273 Started the DMR Id lookup reload thread
+I: 2020-12-13 01:40:47.273     Id: XXXXXXX
+I: 2020-12-13 01:40:47.273     Color Code: 1
+I: 2020-12-13 01:40:47.273     Self Only: no
+I: 2020-12-13 01:40:47.273     Embedded LC Only: no
+I: 2020-12-13 01:40:47.273     Dump Talker Alias Data: yes
+I: 2020-12-13 01:40:47.273     Prefixes: 0
+I: 2020-12-13 01:40:47.273     Call Hang: 3s
+I: 2020-12-13 01:40:47.273     TX Hang: 3s
+I: 2020-12-13 01:40:47.273     Mode Hang: 10s
+I: 2020-12-13 01:40:47.273     OVCM: off
+I: 2020-12-13 01:40:47.273     DMR Roaming Beacons Type: off
+M: 2020-12-13 01:40:47.273 MMDVMHost-20201209 is running
+I: 2020-12-13 01:40:57.290 Opening UDP port on 62032
+D: 2020-12-13 01:40:57.610 DMR, Sending authorisation
+D: 2020-12-13 01:40:57.930 DMR, Sending configuration
+M: 2020-12-13 01:40:58.250 DMR, Logged into the master successfully
 --------------------------------------------------------
 \end{verbatim}
 
@@ -1027,6 +1094,7 @@ DMR を取り巻く状況は日々変化しつつあり、本書の内容もす�
  \item[20190822] 初版
  \item[20200222] MMDVM.ini の設定例において、接続先を Japan Master (4401) から US Master (3101) に変更。
  \item[20200223] 仮想 Linux マシンに使用するディストリビューションを BunsenLabs Helium (Build2) から Debian Buster with Raspberry Pi Desktop (32bit) に変更。
+ \item[20201213] 仮想 Linux マシンにおける日本語入力切り替えの方法、ホットスポットのパスワード設定に関する記述を追加。MMDVM.ini の説明および起動時のログを MMDVMHost-2019131→MMDVMHost-20201209 に合わせ変更。RadioID.net のスクリーンショット差し替え。
 \end{description}
 
 \appendix
