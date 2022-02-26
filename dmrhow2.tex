@@ -151,7 +151,7 @@ TYT MD-380 による申請が多いため、JARD や関東総合通信局が今�
  \includegraphics[width=15cm]{img/jumbospot-aliexpress.png}
  \caption{AliExpress で売られている JumboSPOT の例}
 \end{figure}
-この店では JumboSPOT に書き込まれているファームウエアの GPIO/USB 対応を選ぶことができたのですが、他所で売られているものについては分かりません。最悪の場合、ST-Link ケーブルや Raspberry Pi などを用意して、ファームウェアを書き換えることも想定する必要があります\footnote{GPIO 対応のファームウェアのまま、USB-UART アダプタ経由で繋ぐという手段もあるかもしれません。}。
+この店では JumboSPOT に書き込まれているファームウエアの GPIO/USB 対応を選ぶことができたのですが、他所で売られているものについては分かりません。最悪の場合、ST-Link ケーブルや Raspberry Pi などを用意して、ファームウェアを書き換えることも想定する必要があります\footnote{GPIO 対応のファームウェアのまま、USB-UART アダプタ経由で繋ぐ方法については後述します。}。
 
 なお、eBay や AliExpress で JumboSPOT を探すのは少し面倒で、「jumbospot」で見つからない場合は「MMDVM hotspot」などのキーワードでそれっぽい画像のものを探してみてください。
 
@@ -1097,6 +1097,7 @@ DMR を取り巻く状況は日々変化しつつあり、本書の内容もす�
  \item[20200223] 仮想 Linux マシンに使用するディストリビューションを BunsenLabs Helium (Build2) から Debian Buster with Raspberry Pi Desktop (32bit) に変更。
  \item[20201213] 仮想 Linux マシンにおける日本語入力切り替えの方法、ホットスポットのパスワード設定に関する記述を追加。MMDVM.ini の説明および起動時のログを MMDVMHost-2019131→MMDVMHost-20201209 に合わせ変更。RadioID.net のスクリーンショット差し替え。
  \item[20210703] TYT MD-380 の販売状況について追記。URL と Raspberry Pi Desktop の ISO イメージファイル名および操作方法を 2021-01-11-raspios-buster-i386.iso に合わせて修正。VMware Player の操作方法は 16.x 向けに修正。MMVDM.ini の設定例を修正 (設定内容は変わらず)。
+ \item[20220227] USB 非対応版 JumboSPOT を使用する場合の補足を追加。
 \end{description}
 
 \appendix
@@ -1268,5 +1269,77 @@ JARD に書類を提出してから、二〜三週間くらいの時間で免許
 RT80、DMR 機としての基本的な機能は持っていますが不満がない訳ではありません。MD-380 のような改造ファームウェアを使用して発信者のコールサインを表示するようなことはできませんし、SMS 周りも MD-380 との互換性は無いようで BrandMeister 越しでもメッセージをやりとりすることができません。とはいえ、MD-380 より軽く、操作性の良い点は非常に気に入っています。
 
 これを書いている時点だと Baofeng DM-1801 の方が RT80 よりも安く、AliExpress では \$55 程度の価格で出ています。他にも魅力的な DMR 機がいくつかあり、機会があれば挑戦してみたいと考えています。
+
+\chapter{USB 非対応の JumboSPOT をパソコンで使うために}
+
+\section{USB 非対応でも大丈夫です}
+
+本文では USB 接続に対応した JumboSPOT をパソコンに接続するようにしていますが、入手性があまり良くないため、ここで USB 接続に非対応の JumboSPOT を入手した場合について補足します。
+
+\section{電源と UART さえ繋げば動きます}
+
+JumboSPOT は、Raspberry Pi の 40 ピン GPIO 端子に装着して使用するように作られています。しかし JumboSPOT が実際に使用するのは電源 (5V/3.3V/GND) および UART (TXD/RXD) だけなので、然るべきものを用意すれば Raspberry Pi 以外でも動作させることが可能です。UART については USB-UART アダプタで対応し、電源については USB から 5V を取り、ここから 3.3V をレギュレータで生成すれば良いでしょう\footnote{USB-UART アダプタから 3.3V を取る方法もありますが、アダプタによっては電源容量が不足する可能性もあるため、ここではレギュレータを使用しています。}。
+
+USB-UART は CH340E を搭載したアダプタを使用しましたが、以下の条件を満たしていればどのようなコントローラを搭載していても動作すると思われます。
+
+\begin{itemize}
+ \item 5V の電源端子がある
+ \item RXD/TXD 信号を 3.3V で入出力できる
+ \item OS が USB-UART コントローラに対応している (ドライバを持っている)
+\end{itemize}
+
+配線自体は難しいものではなく、対応する端子に対応する信号や電圧を接続するだけです。レギュレータについては、AliExpress で売られていた DD0403MA 搭載 LDO モジュールを使用しましたが、3.3V を生成し十分な電源容量が得られれば何でも構いません。雑な図ですが、こんな感じになるでしょうか。
+
+\begin{figure}[H]
+ \begin{minipage}[t]{0.5\hsize}
+  \centering
+  \includegraphics[width=6cm]{img/conn.png}
+  \caption{配線図 (部品面)}
+ \end{minipage}
+ \begin{minipage}[t]{0.5\hsize}
+  \centering
+  \includegraphics[width=6cm]{img/conn_r.png}
+  \caption{配線図 (半田面)}
+ \end{minipage}
+\end{figure}
+
+\section{実際に作ってみました}
+
+ピンが曲がっていたり、ハンダ付けもあまり上手い訳では無いのですが、製作例です。JumboSPOT ファームウェア書き換え用のコネクタ (Rasperry Pi のピン 38, 40 に対応する部分) も実装していますが、これは省略しても構いません。
+
+\begin{figure}[H]
+ \begin{minipage}[t]{0.5\hsize}
+  \centering
+  \includegraphics[width=6cm]{img/p2234402.jpg}
+  \caption{組立例 (部品面)}
+ \end{minipage}
+ \begin{minipage}[t]{0.5\hsize}
+  \centering
+  \includegraphics[width=6cm]{img/p2234403.jpg}
+  \caption{組立例 (半田面)}
+ \end{minipage}
+\end{figure}
+
+JumboSPOT を搭載して USB-UART を接続し、PC 上の MMDVMHost から制御できることも確認しています。
+
+\begin{figure}[H]
+ \begin{minipage}[t]{0.5\hsize}
+  \centering
+  \includegraphics[width=6cm]{img/p2234401.jpg}
+  \caption{JumboSPOT 装着時の状態}
+ \end{minipage}
+ \begin{minipage}[t]{0.5\hsize}
+  \centering
+  \includegraphics[width=6cm]{img/p2234409.jpg}
+  \caption{動作中の様子}
+ \end{minipage}
+\end{figure}
+
+なお、USB 接続に対応した JumboSPOT は \verb+/dev/ttyACM0+ に接続されますが、USB-UART を使用して接続した場合は \verb+/dev/ttyUSB0+ となる場合もあるので注意が必要です\footnote{USB-CDC (Communication Device Class) に準拠したデバイスでは \tt{/dev/ttyACM0} となりますが、そうでない場合は \tt{/dev/ttyUSB0} となります。}。
+
+\section{参考文献}
+\begin{description}[style=nextline]
+ \item [JumboSPOT+bluetooth] \url{http://jg3ebb.mydns.jp/html/art/00089.html}
+\end{description}
 
 \end{document}
