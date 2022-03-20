@@ -194,117 +194,129 @@ MD-380 のときもそうでしたが、デジタル方式に対応する諸元�
 
 MMDVMHost は Linux 向けに書かれたプログラムなので Linux の動作するコンピュータが必要になる (そのために Raspberry Pi を用意する) のですが、ここでは VMware Player を使用した仮想 Linux マシンを用意します\footnote{VMware Player ではなく、使わなくなった Windows マシンに Linux をインストールしても良いでしょう。}。
 
-まずは VMware Player を \url{https://www.vmware.com/go/downloadplayerpro-jp} からダウンロードし、インストールしておきます。次に OS インストールのための ISO イメージをダウンロードします。ここでは Raspberry Pi Desktop (Debian Buster with Raspberry Pi Desktop) を \url{https://www.raspberrypi.org/downloads/raspberry-pi-desktop/} からダウンロードし\footnote{ファイルサイズが 3GB 近くありますので、覚悟してください。}、インストールする場合で説明を行いますが、他に好きな Debian 系のものがあればそれを選んで構いません\footnote{Linux でなくとも、OpenBSD でも構いません。実際、筆者は OpenBSD-6.6/amd64 上で MMDVMHost を動かしています。}。
+まずは VMware Player を \url{https://www.vmware.com/go/downloadplayerpro-jp} からダウンロードし、インストールしておきます。次に OS インストールのための ISO イメージをダウンロードします。ここでは Debian を \url{https://www.debian.org/download} からダウンロード\footnote{ダウンロードする ISO イメージは、使用している PC に応じたものが自動的に選ばれます。ここでは 64bit x86 向けのイメージを使用した手順で説明しています。}してインストールする手順の説明を行いますが、他に好きな Debian 系のものがあればそれを選んで構いません\footnote{Linux でなくとも、OpenBSD でも構いません。実際、筆者は OpenBSD-7.0/amd64 上で MMDVMHost を動かしています。}。
 
 \section{仮想 Linux マシンの構築}
 
 VMWare Player を起動し、ホームの「新規仮想マシンの作成(N)」から新規仮想マシン作成ウィザードを実行して、以下の操作を行います。仮想ディスクやメモリのサイズについてはとりあえず動かすための値なので、必要に応じて調整してください。
 
 \begin{itemize}
- \item インストーラディスクイメージファイル (iso): 2021-01-11-raspios-buster-i386.iso
- \item ゲスト OS: Linux, バージョン: Debian 10.x
- \item 仮想マシン名: Linux-MMDVMHost
+ \item インストーラディスクイメージファイル (iso): \verb+debian-11.2.0-amd64-netinst.iso+
+ \item ゲスト OS: Linux, バージョン: Debian 11.x (64ビット)
+ \item 仮想マシン名: \verb+Linux-MMDVMHost+
  \item ディスク最大サイズ: 40.0GB, 仮想ディスクを単一ファイルとして格納
- \item 「ハードウェアをカスタマイズ(C)」から、以下の設定を変更/確認し、「完了」
+ \item 「ハードウェアをカスタマイズ(C)」から、以下の設定を確認\footnote{デフォルトの設定値がこのようになっていますが、念のため確認してください。なお、メモリの設定を 1GB (1024MB) に減らしても動作することを確認しています。}
  \begin{itemize}
-  \item メモリ: 2GB (2048MB)\footnote{デフォルトのままとしますが、ゲスト OS 推奨の最小メモリである 1GB (1024MB) に減らしても問題ありません。}
+  \item メモリ: 2GB (2048MB)
   \item ネットワークアダプタ: NAT
   \item USB コントローラ: あり
  \end{itemize}
+ \item 「この仮想マシンを作成後にパワーオンする(P)」からチェックを外し、「完了」
 \end{itemize}
 
-OS のインストール時に余計なウィンドウが表示されると邪魔なので、一時的に環境設定を変更します。VMware Player 上部の「Player(P)」をクリックし、「ファイル(F)」→「環境設定(P)」をクリックします。「ソフトウェア アップデート」にある、「起動時に製品の更新を確認する(H)」と「必要に応じてソフトウェア コンポーネントを確認する(K)」のチェックを外しておいてください (OS のインストールが終わった後は、このチェックを付けておくことを忘れないように)。
+OS のインストール時に余計なウィンドウが表示されると邪魔なので、一時的に環境設定を変更します。VMware Player 上部の「Player(P)」をクリックし、「ファイル(F)」→「環境設定(P)」をクリックします。「ソフトウェア アップデート」にある、「起動時に製品の更新を確認する(H)」と「必要に応じてソフトウェア コンポーネントを確認する(K)」のチェックを外しておいてください (OS のインストールが終わった後は、これらのチェックを付けておくことを忘れないように)。
 
 これで、仮想マシンに OS をインストールする準備ができました。VMware Player が起動した状態で Linux-MMDVMHost を選択し、「仮想マシンの再生(L)」をクリックすると仮想マシンが起動します。起動後にメニューが表示されますが、操作を行えるようにするために\textbf{VMware Player のウィンドウ内を一度クリックしてから}以下の操作を行ってください。
 
 \begin{itemize}
  \item Debian GNU/Linux menu (BIOS mode)
  \begin{itemize}
-  \item カーソルキーで Graphical install を選択して Enter キーを押す (放っておくと Run with persistence となるので注意\footnote{Run with persistence で起動した場合は、起動後の Welcome to Raspberry Pi のメニューから Cancel を選択し、左上のラズベリーアイコンから Shutdown → Reboot で再起動してやり直します。})
+  \item カーソルキーで Graphical install を選択して Enter キーを押す
  \end{itemize}
- \item Configure the keyboard
+ \item Select a language
  \begin{itemize}
-  \item Keymap to use: 日本語 106/109 キーボードの場合は Japanese、他のキーボードの場合は適切なものを選択
+  \item Japanese - 日本語 を選択し、continue (これ以降はメニューが日本語になります)
  \end{itemize}
- \item Partition disks
+ \item 場所の選択
  \begin{itemize}
-  \item Paratitioning method: Guided - use entire disk
-  \item Select disk to partition: SCSI3 (0,0,0) (sda)
-  \item Partitioning scheme: All files in one partition (recommended for new users)
-  \item Finish partitioning and write changes to disk
-  \item Write the changes to disks? の問いに Yes を選択
+  \item 日本
  \end{itemize}
- \item Install the system 〜 Configure the package manager
+ \item キーボードの設定
  \begin{itemize}
-  \item 時間がかかり、画面がブラックアウトした場合はマウスを動かすか、 Shift や Ctrl 等動作に影響のないキーを押す
+  \item 利用するキーマップ: 日本語 106/109 キーボードの場合は 日本語、それ以外のキーボードの場合は適切なものを選択
  \end{itemize}
- \item Install the GRUB boot loader on a hard disk
+ \item ネットワークの設定
  \begin{itemize}
-  \item Install the GRUB boot loader to the master boot record? の問いに Yes を選択
-  \item Device for boot loader intallation: /dev/sda
+  \item ホスト名: \verb+linux-mmdvmhost+
+  \item ドメイン名: (空白のままとする)
  \end{itemize}
+ \item ユーザとパスワードのセットアップ
+ \begin{itemize}
+  \item rootのパスワード: (任意)
+  \item 確認のため、再度パスワードを入力してください: (同じものを入力)
+  \item 新しいユーザの本名 (フルネーム): (空白のままとする)
+  \item あなたのアカウントのユーザ名: \verb+mmdvm+
+  \item 新しいユーザのパスワードを選んでください: (任意)
+  \item 確認のため、再度パスワードを入力してください: (同じものを入力)
+ \end{itemize}
+ \item ディスクのパーティショニング
+ \begin{itemize}
+  \item パーティショニングの方法: ガイド - ディスク全体を使う
+  \item パーティショニングするディスクの選択: SCSI3 (0,0,0) (sda)
+  \item パーティショニング機構: すべてのファイルを 1 つのパーティションに (初心者ユーザには推奨)
+  \item パーティショニングの終了とディスクへの変更の書き込み
+  \item ディスクに変更を書き込みますか？ の問いに はい を選択
+ \end{itemize}
+ \item ベースシステムのインストール 〜 パッケージマネージャの設定\footnote{時間がかかり、画面がブラックアウトした場合はマウスを動かすか、 Shift や Ctrl 等動作に影響のないキーを押してください。}
+ \begin{itemize}
+  \item 別のインストールメディアを検査しますか？ の問いに いいえ を選択
+  \item Debian アーカイブミラーの国: 日本
+  \item Debian アーカイブミラー: deb.debian.org (デフォルト)
+  \item HTTP プロキシ: (空白のままとする)
+ \end{itemize}
+ \item ソフトウェアの選択とインストール
+ \begin {itemize}
+   \item popularity-contest を設定しています → Debian パッケージ利用調査に参加しますか？ の問いに いいえ を選択
+   \item インストールするソフトウェアの選択 → Debian デスクトップ環境・Xfce・標準システムユーティリティ にチェックを付け、他はすべて外す
+ \end{itemize}
+ \item GRUB ブートローダをインストールします
+ \begin{itemize}
+  \item 起動ドライブへ GRUB ブートローラをインストールしますか？ の問いに はい を選択
+  \item ブートローダをインストールするデバイス: /dev/sda
+ \end{itemize}
+ \item インストールの完了
+ \begin{itemize}
+  \item 続ける をクリックして仮想マシンを再起動
+ \end{itemize}     
 \end{itemize}
 
-Finish the installation で Installation complete と表示された状態で Continue を選択すると、自動的に再起動します。再起動後は Welcome to Raspberry Pi のウィンドウが表示されますので Next をクリックし、以下の設定を行います。
-
-\begin{itemize}
- \item Set Country
-  \begin{itemize}
-   \item Country: Japan
-   \item Language: Japanese
-   \item Timezone: Tokyo
-   \item Use English Language にチェックが無いことを確認
-   \item 日本語 106/109 キーボードの場合は Use US keyboard のチェックを外す
-  \end{itemize}
-  \item Change Password
-  \begin{itemize}
-   \item Enter New password, Confirm new password 共に同一のパスワードを入力\footnote{ユーザ名を入力する場面がありませんが、これは \tt{pi} が設定されています。}
-  \end{itemize}
-  \item Update Software: ここは Skip する
-%  \item Error installing languages (The following packages have unmet dependencies) は OK を押してスキップ
-% fcitx-frontend-qt4, fcitx-ui-classic, fcitx-module-x11, fcitx-frontend-gtk2, fcitx-frontend-gtk3, fcitx-mozc, fcitx-bin, fcitx-modules, tegaki-zinnia-japanese, mozc-utils-gui, fcitx
-  \item Setup Complete: Done をクリック
-\end{itemize}
-
-言語設定を変更しているので、ここで必ず再起動します。左上のラズベリーのアイコンから Shutdown を選択し、Shutdown options の Reboot を選んで再起動してください。
-
-再起動後に、設定の仕上げを行います。画面上端の $>$\_ と描かれたアイコンを押し、ターミナル (LXTerminal) を起動して以下のコマンドを入力してください\footnote{Raspberry Pi Desktop はインストール後すぐにプログラミングを開始できるよう、かなりの設定が済んでいる状態となっています。これ以外の Debian 系 Linux をインストールした場合は上記に加え、\tt{adduser ユーザ名 dialout} や \tt{apt-get install build-essential git} を行う必要もあります。} (コマンドの前の \verb+#+ や \verb+$+ はプロンプトなのでこれは入力しないように)。
+再起動後にユーザ名 \verb+root+ (および root 用に設定したパスワード) でログインし、画面下端の $>$\_ と描かれたアイコンを押してターミナル (xfce4-terminal) を起動します。設定の仕上げを行うため、以下のコマンドを入力してください\footnote{コマンドの前の \tt{\#} や \tt{\$} はプロンプトなのでこれは入力しないように。}。
 
 \begin{verbatim}
-$ sudo -i
+# adduser mmdvm dialout
 # apt-get update
 # apt-get upgrade
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
- \item 続行しますか? [Y/n] の問いには \verb+y+
- \item (終了するには q を押して下さい) が表示された場合は \verb+q+
- \item 「The desktop has been updated.」が表示された場合は「OK」
+ \item 続行しますか? [Y/n] の問いがあれば \verb+y+
 \end{itemize}
 \begin{verbatim}
-# apt-get install fcitx-mozc
+# apt-get build-essential git
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
- \item 続行しますか? [Y/n] の問いには \verb+y+
+ \item 続行しますか? [Y/n] の問いがあれば \verb+y+
 \end{itemize}
 
-仮想マシンの用意はこれで完了です\footnote{\tt{apt-get install fcitx-mozc} により、日本語入力ができるようになっています。入力の切り替えは全角/半角キーもしくは Ctrl+Space で行いますが、Emacs を使用する場合は \tt{fcitx-config-gtk3} を使用し、「全体の設定」タブにある「入力メソッドのオンオフ」で Ctrl+Space を Shift+Space に変更しておくと良いでしょう。}。
+仮想マシンの用意はこれで完了です。 %\footnote{デフォルトで uim-mozc がインストールされているため、日本語入力ができるようになっています。入力の切り替えは全角/半角キーもしくは Shift+Space で行いますが、他のキーで切り替えたい場合は \tt{uim-pref-gtk3} を使用して設定すると良いでしょう。}
 
 \section{仮想マシンを終了させるには}
 少し休憩してから、次のステップに進みましょう。
 
-左上のラズベリーアイコンをクリックし、メニューからログアウトを選択して Shutdown options を表示させ、Shutdown で仮想マシンを終了させてください。もしくは、以下のコマンドで終了させることもできます。
+右上の、ログイン中のユーザ名が表示されている部分 (この時点では root となっているはずです) をクリックし、メニューから「ログアウト(O)」を選択→「シャットダウン(D)」をクリックして仮想マシンを終了させてください。もしくは、以下のコマンドで終了させることもできます。
 
 \begin{verbatim}
-$ sudo halt -p
+$ su
+パスワード: (root のパスワード)
+# /sbin/halt -p
 \end{verbatim}
 
 \section{MMDVMHost のコンパイル}
 
-VMware Player を起動し、仮想マシン Linux-MMDVMHost が選択されている状態で「仮想マシンの再生」を行い、Raspberry Pi Desktop を起動します。
+VMware Player を起動し、仮想マシン Linux-MMDVMHost が選択されている状態で「仮想マシンの再生」を行い、Debian を起動します。
 
-起動後、MMDVMHost のダウンロード・コンパイルを行います。画面上端の $>$\_ と描かれたアイコンを押してターミナル (LXTerminal) を起動し、以下のコマンドを入力してください\footnote{Raspberry Pi desktop ではこれだけで問題なく終わることを確認しています。これ以外の Debian 系 Linux でエラーが起こった場合は、\tt{sudo apt-get install build-essential}を実行してから再度試してみてください。}。
+起動後に、ユーザ名 \verb+mmdvm+ (とそのパスワード) でログインし、MMDVMHost のダウンロード・コンパイルを行います。画面上端の $>$\_ と描かれたアイコンを押してターミナル (xfce4-terminal) を起動し、以下のコマンドを入力してください。
 
 \begin{verbatim}
 $ cd ~
@@ -353,11 +365,19 @@ ls: cannot access '/dev/ttyACM*': No such file or directory
 
 \section{MMDVM.ini を設定する}
 
-MMDVMHost を実行するためには設定ファイルである MMDVM.ini を適当なエディタ (nano, vi, Emacs 等) で編集する必要があります。これは、MMDVMHost をコンパイルしたディレクトリ (\verb+~/MMDVMHost+) の中にあります。以下にダウンロードした (オリジナルの) 状態からの変更点を示しますが、基本的に
+MMDVMHost を実行するためには設定ファイルである MMDVM.ini を適当なエディタ (nano, vi, Emacs 等) で編集する必要があります。これは、MMDVMHost をコンパイルしたディレクトリ (\verb+~/MMDVMHost+) の中にあります。このファイルを直接編集しても良いのですが、今回は
+
+\begin{verbatim}
+$ cp MMDVM.ini MMDVM.ini.bm
+\end{verbatim}
+
+のようにコピーして、コピーしたファイル (MMDVM.ini.bm) を編集することにします。以下にダウンロードした (オリジナルの) 状態からの変更点を示しますが、基本的に
+
 \begin{itemize}
  \item 最低限必要な項目は設定する
  \item 使わないモード (DMR 以外) については全て無効化する
 \end{itemize}
+
 という考えに基づいて設定しています。
 
 \begin{verbatim}
@@ -437,18 +457,30 @@ File=NXDN.csv
 Time=24
 
 [Modem]
-# Port=/dev/ttyACM0
-# Port=/dev/ttyAMA0
-Port=\\.\COM4
+# Valid values are "null", "uart", "udp", and (on Linux) "i2c"
+Protocol=uart
+# The port and speed used for a UART connection
+# UARTPort=\\.\COM4
+# UARTPort=/dev/ttyACM0
+UARTPort=/dev/ttyAMA0
+UARTSpeed=460800
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
- \item JumboSPOT を接続したポート \verb+Port=/dev/ttyACM0+ とします
  \item \verb+#+ の後は無視されます (コメントとして扱われます)
+ \item \verb+UARTPort+ は JumboSPOT を接続したポート (例: \verb+Port=/dev/ttyACM0+) とします
+ \item \verb+UARTSpeed+ は \verb+460800+ → \verb+115200+ に変更してください
 \end{itemize}
 \begin{verbatim}
-Protocol=uart
-# Address=0x22
+# The port and address for an I2C connection
+I2CPort=/dev/i2c
+I2CAddress=0x22
+# IP parameters for UDP connection
+ModemAddress=192.168.2.100
+ModemPort=3334
+LocalAddress=192.168.2.1
+LocalPort=3335
+
 TXInvert=1
 RXInvert=0
 PTTInvert=0
@@ -473,8 +505,10 @@ RFLevel=100
 # YSFTXLevel=50
 # P25TXLevel=50
 # NXDNTXLevel=50
+# M17TXLevel=50
 # POCSAGTXLevel=50
 # FMTXLevel=50
+# AX25TXLevel=50
 RSSIMappingFile=RSSI.dat
 UseCOSAsLockout=0
 Trace=0
@@ -486,11 +520,6 @@ RemoteAddress=127.0.0.1
 RemotePort=40094
 LocalPort=40095
 # SendFrameType=0
-
-[UMP]
-Enable=0
-# Port=\\.\COM4
-Port=/dev/ttyACM1
 
 [D-Star]
 Enable=1
@@ -577,6 +606,19 @@ RemoteGateway=0
 TXHang=5
 # ModeHang=10
 
+[M17]
+Enable=1
+\end{verbatim}
+\begin{itemize}
+ \renewcommand{\labelitemi}{$\triangleright$}
+ \item M17 は使用しないので \verb+Enable=0+ とします
+\end{itemize}
+\begin{verbatim}
+CAN=0
+SelfOnly=0
+TXHang=5
+# ModeHang=10
+
 [POCSAG]
 Enable=1
 \end{verbatim}
@@ -621,18 +663,44 @@ CTCSSThreshold=30
 CTCSSLevel=20
 KerchunkTime=0
 HangTime=7
+# AccessMode values are:
+#   0 - Carrier access with COS
+#   1 - CTCSS only access without COS
+#   2 - CTCSS only access with COS
+#   3 - CTCSS only access with COS to start, then carrier access with COS
 AccessMode=1
+# LinkMode=1 to remove almost all of the logic control
+LinkMode=0
 COSInvert=0
+NoiseSquelch=0
+SquelchThreshold=30
+# SquelchHighThreshold=30
+# SquelchLowThreshold=20
 RFAudioBoost=1
 MaxDevLevel=90
 ExtAudioBoost=1
+# ModeHang=10
+
+[AX.25]
+Enable=1
+\end{verbatim}
+\begin{itemize}
+ \renewcommand{\labelitemi}{$\triangleright$}
+ \item AX.25 は使用しないので \verb+Enable=0+ とします
+\end{itemize}
+\begin{verbatim}
+TXDelay=300
+RXTwist=6
+SlotTime=30
+PPersist=128
+Trace=1
 
 [D-Star Network]
 Enable=1
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
- \item D-STAR は使用しないので \verb+Enable=0+ とします
+ \item \verb+[D-Star]+ で \verb+Enable=0+ としているため、ここは \verb+Enable=1+ のままで構いません (他のプロトコルに関しても同様です)
 \end{itemize}
 \begin{verbatim}
 GatewayAddress=127.0.0.1
@@ -646,20 +714,22 @@ Enable=1
 # Type may be either 'Direct' or 'Gateway'. When Direct you must provide the Master's
 # address as well as the Password, and for DMR+, Options also.
 Type=Gateway
+LocalAddress=127.0.0.1
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
  \item DMRGateway を使用しないので \verb+Type=Direct+ とします (省略した場合、\verb+Type=Gateway+ と同義です)
+ \item \verb+LocalAddress=+ の行は削除するか、コメントアウトしてください
 \end{itemize}
 \begin{verbatim}
-Address=127.0.0.1
-Port=62031
-Local=62032
+LocalPort=62032
+RemoteAddress=127.0.0.1
+RemotePort=62031
 # Password=P@ssw0rd1234
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
- \item ここでは US Master (3101) \verb+Address=107.191.99.14 Password=+(BrandMeister の HotSport Security で設定したパスワード) を指定します\footnote{Master の IP アドレスは、DMR\_Hosts.txt (\url{http://www.pistar.uk/downloads/DMR_Hosts.txt}) を参照してください。日本向けの TalkGroup はかつて存在した Japan Master でしか使えないという情報がありましたが、これは全くの誤りで、どこの Master に接続しても同等のサービスを受けることができます。}
+ \item \verb+RemoteAddress=3103.repeater.net+ と \verb+Password=+(BrandMeister の HotSport Security で設定したパスワード) を指定します (コメントアウトも外してください)。\footnote{BrandMeister Master のホスト名は、DMR\_Hosts.txt (\url{http://www.pistar.uk/downloads/DMR_Hosts.txt}) を参照してください。日本向けの TalkGroup はかつて存在した Japan Master でしか使えないという情報がありましたが、これは全くの誤りで、どこの Master に接続しても同等のサービスを受けることができます。}
 \end{itemize}
 \begin{verbatim}
 Jitter=360
@@ -671,12 +741,6 @@ Debug=0
 
 [System Fusion Network]
 Enable=1
-\end{verbatim}
-\begin{itemize}
- \renewcommand{\labelitemi}{$\triangleright$}
- \item System Fusion (C4FM) は使用しないので \verb+Enable=0+ とします
-\end{itemize}
-\begin{verbatim}
 LocalAddress=127.0.0.1
 LocalPort=3200
 GatewayAddress=127.0.0.1
@@ -686,12 +750,6 @@ Debug=0
 
 [P25 Network]
 Enable=1
-\end{verbatim}
-\begin{itemize}
- \renewcommand{\labelitemi}{$\triangleright$}
- \item P25 は使用しないので \verb+Enable=0+ とします
-\end{itemize}
-\begin{verbatim}
 GatewayAddress=127.0.0.1
 GatewayPort=42020
 LocalPort=32010
@@ -700,12 +758,6 @@ Debug=0
 
 [NXDN Network]
 Enable=1
-\end{verbatim}
-\begin{itemize}
- \renewcommand{\labelitemi}{$\triangleright$}
- \item NXDN は使用しないので \verb+Enable=0+ とします
-\end{itemize}
-\begin{verbatim}
 Protocol=Icom
 LocalAddress=127.0.0.1
 LocalPort=14021
@@ -714,19 +766,42 @@ GatewayPort=14020
 # ModeHang=3
 Debug=0
 
+[M17 Network]
+Enable=1
+LocalAddress=127.0.0.1
+LocalPort=17011
+GatewayAddress=127.0.0.1
+GatewayPort=17010
+# ModeHang=3
+Debug=0
+
 [POCSAG Network]
 Enable=1
-\end{verbatim}
-\begin{itemize}
- \renewcommand{\labelitemi}{$\triangleright$}
- \item POCSAG は使用しないので \verb+Enable=0+ とします
-\end{itemize}
-\begin{verbatim}
 LocalAddress=127.0.0.1
 LocalPort=3800
 GatewayAddress=127.0.0.1
 GatewayPort=4800
 # ModeHang=3
+Debug=0
+
+[FM Network]
+Enable=1
+# Protocol=USRP
+LocalAddress=127.0.0.1
+LocalPort=3810
+GatewayAddress=127.0.0.1
+GatewayPort=4810
+PreEmphasis=1
+DeEmphasis=1
+TXAudioGain=1.0
+RXAudioGain=1.0
+# ModeHang=3
+Debug=0
+
+[AX.25 Network]
+Enable=1
+Port=/dev/ttyp7
+Speed=9600
 Debug=0
 
 [TFT Serial]
@@ -799,123 +874,130 @@ Port=7642
 
 \section{MMDVMHost を起動する}
 
-MMDVM.ini の設定が終わったので、MMDVMHost を起動して実際に BrandMeister に接続します。
+設定ファイル (MMDVM.ini.bm) の編集が終わったので、MMDVMHost を起動して実際に BrandMeister に接続します。
 
 \begin{verbatim}
 $ cd ~/MMDVMHost
-$ ./MMDVMHost ./MMDVM.ini
+$ ./MMDVMHost ./MMDVM.ini.bm
 \end{verbatim}
 
-MMDVMHost は引数を指定しない場合、\verb+/etc/MMDVM.ini+ を参照します。しかしここでは \verb+~/MMDVMHost+ にある MMDVM.ini を使用するよう引数を指定しています。特に問題が無ければ、以下のようなメッセージが表示されるはずです。
+MMDVMHost は引数を指定しない場合、\verb+/etc/MMDVM.ini+ を参照します。しかしここでは \verb+~/MMDVMHost+ にある MMDVM.ini.bm を使用するよう引数を指定しています。特に問題が無ければ、以下のようなメッセージが表示されるはずです。
 
 \begin{verbatim}
 --------------------------------------------------------
-$ ./MMDVMHost ./MMDVM.ini
-I: 2020-12-13 01:40:43.080 This software is for use on amateur radio 
+$ ./MMDVMHost ./MMDVM.ini.bm
+I: 2022-03-20 02:33:43.972 This software is for use on amateur radio
 networks only,
-I: 2020-12-13 01:40:43.080 it is to be used for educational purposes 
+I: 2022-03-20 02:33:43.974 it is to be used for educational purposes
 only. Its use on
-I: 2020-12-13 01:40:43.080 commercial networks is strictly prohibited.
-I: 2020-12-13 01:40:43.080 Copyright(C) 2015-2020 by Jonathan Naylor,
- G4KLX and others
-M: 2020-12-13 01:40:43.080 MMDVMHost-20201209 is starting
-M: 2020-12-13 01:40:43.080 Built 10:29:40 Dec 13 2020 (GitID #6e05225)
-I: 2020-12-13 01:40:43.080 General Parameters
-I: 2020-12-13 01:40:43.080     Callsign: XXXXXX
-I: 2020-12-13 01:40:43.080     Id: XXXXXXX
-I: 2020-12-13 01:40:43.080     Duplex: no
-I: 2020-12-13 01:40:43.080     Timeout: 180s
-I: 2020-12-13 01:40:43.080     D-Star: disabled
-I: 2020-12-13 01:40:43.080     DMR: enabled
-I: 2020-12-13 01:40:43.080     YSF: disabled
-I: 2020-12-13 01:40:43.080     P25: disabled
-I: 2020-12-13 01:40:43.080     NXDN: disabled
-I: 2020-12-13 01:40:43.080     POCSAG: enabled
-I: 2020-12-13 01:40:43.080     FM: disabled
-I: 2020-12-13 01:40:43.080 Modem Parameters
-I: 2020-12-13 01:40:43.080     Port: /dev/ttyACM0
-I: 2020-12-13 01:40:43.080     Protocol: uart
-I: 2020-12-13 01:40:43.080     RX Invert: no
-I: 2020-12-13 01:40:43.080     TX Invert: yes
-I: 2020-12-13 01:40:43.080     PTT Invert: no
-I: 2020-12-13 01:40:43.080     TX Delay: 100ms
-I: 2020-12-13 01:40:43.080     RX Offset: 1100Hz
-I: 2020-12-13 01:40:43.080     TX Offset: 1100Hz
-I: 2020-12-13 01:40:43.080     RX DC Offset: 0
-I: 2020-12-13 01:40:43.080     TX DC Offset: 0
-I: 2020-12-13 01:40:43.080     RF Level: 100.0%
-I: 2020-12-13 01:40:43.080     DMR Delay: 0 (0.0ms)
-I: 2020-12-13 01:40:43.080     RX Level: 50.0%
-I: 2020-12-13 01:40:43.080     CW Id TX Level: 50.0%
-I: 2020-12-13 01:40:43.080     D-Star TX Level: 50.0%
-I: 2020-12-13 01:40:43.080     DMR TX Level: 50.0%
-I: 2020-12-13 01:40:43.080     YSF TX Level: 50.0%
-I: 2020-12-13 01:40:43.080     P25 TX Level: 50.0%
-I: 2020-12-13 01:40:43.080     NXDN TX Level: 50.0%
-I: 2020-12-13 01:40:43.080     POCSAG TX Level: 50.0%
-I: 2020-12-13 01:40:43.080     FM TX Level: 50.0%
-I: 2020-12-13 01:40:43.080     TX Frequency: XXXXX0000Hz (XXXXX1100Hz)
-I: 2020-12-13 01:40:43.080     Use COS as Lockout: no
-M: 2020-12-13 01:40:43.081 Opening the MMDVM
-I: 2020-12-13 01:40:45.130 MMDVM protocol version: 1, description: MM
+I: 2022-03-20 02:33:43.975 commercial networks is strictly prohibited.
+I: 2022-03-20 02:33:43.976 Copyright(C) 2015-2021 by Jonathan Naylor,
+G4KLX and others
+M: 2022-03-20 02:33:43.977 MMDVMHost-20210921 is starting
+M: 2022-03-20 02:33:43.977 Built 11:21:01 Mar 20 2022 (GitID #3e8cda2)
+I: 2022-03-20 02:33:43.977 General Parameters
+I: 2022-03-20 02:33:43.977     Callsign: XXXXXX
+I: 2022-03-20 02:33:43.977     Id: XXXXXXX
+I: 2022-03-20 02:33:43.977     Duplex: no
+I: 2022-03-20 02:33:43.977     Timeout: 180s
+I: 2022-03-20 02:33:43.977     D-Star: disabled
+I: 2022-03-20 02:33:43.977     DMR: enabled
+I: 2022-03-20 02:33:43.977     YSF: disabled
+I: 2022-03-20 02:33:43.977     P25: disabled
+I: 2022-03-20 02:33:43.977     NXDN: disabled
+I: 2022-03-20 02:33:43.977     M17: disabled
+I: 2022-03-20 02:33:43.977     POCSAG: disabled
+I: 2022-03-20 02:33:43.977     FM: disabled
+I: 2022-03-20 02:33:43.977     AX.25: disabled
+I: 2022-03-20 02:33:43.977 Modem Parameters
+I: 2022-03-20 02:33:43.977     Protocol: uart
+I: 2022-03-20 02:33:43.978     UART Port: /dev/ttyACM0
+I: 2022-03-20 02:33:43.978     UART Speed: 115200
+I: 2022-03-20 02:33:43.978     RX Invert: no
+I: 2022-03-20 02:33:43.978     TX Invert: yes
+I: 2022-03-20 02:33:43.978     PTT Invert: no
+I: 2022-03-20 02:33:43.978     TX Delay: 100ms
+I: 2022-03-20 02:33:43.978     RX Offset: 1100Hz
+I: 2022-03-20 02:33:43.978     TX Offset: 1100Hz
+I: 2022-03-20 02:33:43.978     RX DC Offset: 0
+I: 2022-03-20 02:33:43.979     TX DC Offset: 0
+I: 2022-03-20 02:33:43.979     RF Level: 100.0%
+I: 2022-03-20 02:33:43.979     DMR Delay: 0 (0.0ms)
+I: 2022-03-20 02:33:43.979     RX Level: 50.0%
+I: 2022-03-20 02:33:43.979     CW Id TX Level: 50.0%
+I: 2022-03-20 02:33:43.979     D-Star TX Level: 50.0%
+I: 2022-03-20 02:33:43.979     DMR TX Level: 50.0%
+I: 2022-03-20 02:33:43.979     YSF TX Level: 50.0%
+I: 2022-03-20 02:33:43.979     P25 TX Level: 50.0%
+I: 2022-03-20 02:33:43.979     NXDN TX Level: 50.0%
+I: 2022-03-20 02:33:43.980     M17 TX Level: 50.0%
+I: 2022-03-20 02:33:43.980     POCSAG TX Level: 50.0%
+I: 2022-03-20 02:33:43.980     FM TX Level: 50.0%
+I: 2022-03-20 02:33:43.980     AX.25 TX Level: 50.0%
+I: 2022-03-20 02:33:43.980     TX Frequency: XXXXX0000Hz (XXXXX1100Hz)
+I: 2022-03-20 02:33:43.980     Use COS as Lockout: no
+M: 2022-03-20 02:33:43.980 Opening the MMDVM
+
+I: 2022-03-20 02:33:47.354 MMDVM protocol version: 1, description: MM
 DVM_HS_Hat-v1.5.1b 20191201 14.7456MHz ADF7021 FW by CA6JAU GitID #ec
 4fd74
-I: 2020-12-13 01:40:45.170 Display Parameters
-I: 2020-12-13 01:40:45.170     Type: None
-I: 2020-12-13 01:40:45.170 No valid display found, disabling
-I: 2020-12-13 01:40:45.540 DMR Network Parameters
-I: 2020-12-13 01:40:45.540     Type: Direct
-I: 2020-12-13 01:40:45.540     Address: 107.191.99.14
-I: 2020-12-13 01:40:45.540     Port: 62031
-I: 2020-12-13 01:40:45.540     Local: 62032
-I: 2020-12-13 01:40:45.540     Jitter: 360ms
-I: 2020-12-13 01:40:45.540     Slot 1: enabled
-I: 2020-12-13 01:40:45.540     Slot 2: enabled
-I: 2020-12-13 01:40:45.540     Mode Hang: 3s
-I: 2020-12-13 01:40:45.541 Info Parameters
-I: 2020-12-13 01:40:45.541     Callsign: XXXXXX
-I: 2020-12-13 01:40:45.541     RX Frequency: XXXXX0000Hz
-I: 2020-12-13 01:40:45.541     TX Frequency: XXXXX0000Hz
-I: 2020-12-13 01:40:45.541     Power: 1W
-I: 2020-12-13 01:40:45.541     Latitude: X.XXXXXXdeg N
-I: 2020-12-13 01:40:45.541     Longitude: X.XXXXXXdeg E
-I: 2020-12-13 01:40:45.541     Height: Xm
-I: 2020-12-13 01:40:45.541     Location: "XXXXXXXXXXXXXX"
-I: 2020-12-13 01:40:45.541     Description: "XXXXXXXXXXXXXXXXXXX"
-I: 2020-12-13 01:40:45.541     URL: "XXXXXXXXXXXXXX"
-M: 2020-12-13 01:40:45.541 Opening DMR Network
-I: 2020-12-13 01:40:45.541 RSSI
-I: 2020-12-13 01:40:45.541     Mapping File: RSSI.dat
-I: 2020-12-13 01:40:45.541 Loaded 0 RSSI data mapping points from RSS
-I.dat
-I: 2020-12-13 01:40:45.541 DMR Id Lookups
-I: 2020-12-13 01:40:45.541     File: DMRIds.dat
-I: 2020-12-13 01:40:45.541     Reload: 24 hours
-I: 2020-12-13 01:40:47.272 Loaded 180628 IDs to lookup table - DMRIds.dat
-I: 2020-12-13 01:40:47.272 DMR RF Parameters
-I: 2020-12-13 01:40:47.273 Started the DMR Id lookup reload thread
-I: 2020-12-13 01:40:47.273     Id: XXXXXXX
-I: 2020-12-13 01:40:47.273     Color Code: 1
-I: 2020-12-13 01:40:47.273     Self Only: no
-I: 2020-12-13 01:40:47.273     Embedded LC Only: no
-I: 2020-12-13 01:40:47.273     Dump Talker Alias Data: yes
-I: 2020-12-13 01:40:47.273     Prefixes: 0
-I: 2020-12-13 01:40:47.273     Call Hang: 3s
-I: 2020-12-13 01:40:47.273     TX Hang: 3s
-I: 2020-12-13 01:40:47.273     Mode Hang: 10s
-I: 2020-12-13 01:40:47.273     OVCM: off
-I: 2020-12-13 01:40:47.273     DMR Roaming Beacons Type: off
-M: 2020-12-13 01:40:47.273 MMDVMHost-20201209 is running
-I: 2020-12-13 01:40:57.290 Opening UDP port on 62032
-D: 2020-12-13 01:40:57.610 DMR, Sending authorisation
-D: 2020-12-13 01:40:57.930 DMR, Sending configuration
-M: 2020-12-13 01:40:58.250 DMR, Logged into the master successfully
+I: 2022-03-20 02:33:47.377 Display Parameters
+I: 2022-03-20 02:33:47.377     Type: None
+W: 2022-03-20 02:33:47.377 No valid display found, disabling
+I: 2022-03-20 02:33:47.377 DMR Network Parameters
+I: 2022-03-20 02:33:47.377     Type: Direct
+I: 2022-03-20 02:33:47.377     Remote Address: 3103.repeater.net
+I: 2022-03-20 02:33:47.377     Remote Port: 62031
+I: 2022-03-20 02:33:47.377     Local Address: 
+I: 2022-03-20 02:33:47.377     Local Port: 62032
+I: 2022-03-20 02:33:47.377     Jitter: 360ms
+I: 2022-03-20 02:33:47.377     Slot 1: enabled
+I: 2022-03-20 02:33:47.377     Slot 2: enabled
+I: 2022-03-20 02:33:47.377     Mode Hang: 3s
+I: 2022-03-20 02:33:47.377 Info Parameters
+I: 2022-03-20 02:33:47.377     Callsign: XXXXXX
+I: 2022-03-20 02:33:47.377     RX Frequency: XXXXX0000Hz
+I: 2022-03-20 02:33:47.377     TX Frequency: XXXXX0000Hz
+I: 2022-03-20 02:33:47.377     Power: 1W
+I: 2022-03-20 02:33:47.377     Latitude: X.XXXXXXdeg N
+I: 2022-03-20 02:33:47.377     Longitude: X.XXXXXXdeg E
+I: 2022-03-20 02:33:47.377     Height: Xm
+I: 2022-03-20 02:33:47.377     Location: "XXXXXXX"
+I: 2022-03-20 02:33:47.377     Description: "XXXXXXXXXXXXXXXXXXX"
+I: 2022-03-20 02:33:47.377     URL: "XXXXXXXXXXXXXXXX"
+M: 2022-03-20 02:33:47.398 Opening DMR Network
+I: 2022-03-20 02:33:47.399 RSSI
+I: 2022-03-20 02:33:47.400     Mapping File: RSSI.dat
+I: 2022-03-20 02:33:47.400 Loaded 0 RSSI data mapping points from RSSI.dat
+I: 2022-03-20 02:33:47.401 DMR Id Lookups
+I: 2022-03-20 02:33:47.402     File: DMRIds.dat
+I: 2022-03-20 02:33:47.402     Reload: 24 hours
+I: 2022-03-20 02:33:47.402 Loading ID lookup table from DMRIds.dat
+I: 2022-03-20 02:33:47.627 Loaded 145242 IDs to lookup table - DMRIds.dat
+I: 2022-03-20 02:33:47.628 DMR RF Parameters
+I: 2022-03-20 02:33:47.629     Id: XXXXXXX
+I: 2022-03-20 02:33:47.630     Color Code: 1
+I: 2022-03-20 02:33:47.630     Self Only: no
+I: 2022-03-20 02:33:47.631     Embedded LC Only: no
+I: 2022-03-20 02:33:47.632     Dump Talker Alias Data: yes
+I: 2022-03-20 02:33:47.632     Prefixes: 0
+I: 2022-03-20 02:33:47.632     Call Hang: 3s
+I: 2022-03-20 02:33:47.632     TX Hang: 3s
+I: 2022-03-20 02:33:47.632     Mode Hang: 10s
+I: 2022-03-20 02:33:47.632     OVCM: off
+I: 2022-03-20 02:33:47.632     DMR Roaming Beacons Type: off
+M: 2022-03-20 02:33:47.632 MMDVMHost-20210921 is running
+I: 2022-03-20 02:33:47.633 Started the DMR Id lookup reload thread
+I: 2022-03-20 02:33:57.631 Opening UDP port on 62032
+D: 2022-03-20 02:33:57.751 DMR, Sending authorisation
+D: 2022-03-20 02:33:57.873 DMR, Sending configuration
+M: 2022-03-20 02:33:57.993 DMR, Logged into the master successfully
 --------------------------------------------------------
 \end{verbatim}
 
-もし \verb+/dev/ttyACM0+ がオープンできないといったエラーが発生した場合、\verb+/dev/ttyACM0+ がきちんと認識できているかどうか確認してください\footnote{Raspberry Pi Desktop では既に設定されていますが、これ以外の Linux では \tt{/dev/ttyACM0} を使用するユーザがグループ dialout に加わっているかを確認する必要もあるかもしれません。}。
+もし \verb+/dev/ttyACM0+ がオープンできないといったエラーが発生した場合は、\verb+/dev/ttyACM0+ がきちんと認識できているかどうかを確認してください。また、\verb+id mmdvm+ でグループ dialout に加わっているかも確認してください。
 
-BrandMeister ネットワークに接続できない場合、接続先の IP アドレスやパスワードが間違っていないか、MMDVM.ini の [DMR Network] セクションの Address や Password の設定を見直してください。もし BrandMeister Master にトラブルがあり接続できない場合は、他の Master を使用する設定を試してみてください。
+BrandMeister ネットワークに接続できない場合は、接続先のホスト名やパスワードが間違っていないか、MMDVM.ini の [DMR Network] セクションの Address や Password の設定を見直してください。もし BrandMeister Master にトラブルがあり接続できない場合は、他の Master を使用する設定を試してみてください。
 
 \section{受信するトークグループを設定しよう}
 
@@ -1098,6 +1180,7 @@ DMR を取り巻く状況は日々変化しつつあり、本書の内容もす�
  \item[20201213] 仮想 Linux マシンにおける日本語入力切り替えの方法、ホットスポットのパスワード設定に関する記述を追加。MMDVM.ini の説明および起動時のログを MMDVMHost-2019131→MMDVMHost-20201209 に合わせ変更。RadioID.net のスクリーンショット差し替え。
  \item[20210703] TYT MD-380 の販売状況について追記。URL と Raspberry Pi Desktop の ISO イメージファイル名および操作方法を 2021-01-11-raspios-buster-i386.iso に合わせて修正。VMware Player の操作方法は 16.x 向けに修正。MMVDM.ini の設定例を修正 (設定内容は変わらず)。
  \item[20220227] USB 非対応版 JumboSPOT を使用する場合の補足を追加。
+ \item[20220320] 仮想 Linux マシンに使用するディストリビューションを Debian Buster with Raspberry Pi Desktop (32bit) から Debian-11.2 (64bit) に変更。MMDVM.ini の設定内容見直し。
 \end{description}
 
 \appendix
