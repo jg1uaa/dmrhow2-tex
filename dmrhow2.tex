@@ -21,6 +21,10 @@
 \maketitle
 \tableofcontents
 
+\chapter*{警告}
+
+本書の初版が書かれたのは 2019 年のことであり、現在における DMR を取り巻く状況とはかなり異なっている部分がある点に注意してください。特に、2024 年 6 月 21 日に衆議院に提出された「アマチュア局の通信に関する無線局運用規則改正に関する質問趣意書」 (\url{https://www.shugiin.go.jp/internet/itdb_shitsumon.nsf/html/shitsumon/a213149.htm}) に対する答弁 (\url{https://www.shugiin.go.jp/internet/itdb_shitsumon.nsf/html/shitsumon/b213149.htm}) にあるように、\emph{自局間通信（同一コールサイン間の通信）は明確に否定されています}。本書では当時の記録も兼ねて記述を敢えてそのままにしていますが、この部分に関してはホットスポット用に社団局のコールサインを取得するなど、適切な対応をお願いします。
+
 \chapter{はじめに}
 
 \section{DMR って何}
@@ -292,7 +296,7 @@ OS のインストール時に余計なウィンドウが表示されると邪�
  \item 続行しますか? [Y/n] の問いがあれば \verb+y+
 \end{itemize}
 \begin{verbatim}
-# apt-get build-essential git
+# apt-get install build-essential git
 \end{verbatim}
 \begin{itemize}
  \renewcommand{\labelitemi}{$\triangleright$}
@@ -320,7 +324,7 @@ VMware Player を起動し、仮想マシン Linux-MMDVMHost が選択されて�
 
 \begin{verbatim}
 $ cd ~
-$ git clone https://github.com/g4klx/MMDVMHost.git
+$ git clone https://github.com/g4klx/MMDVMHost
 $ cd MMDVMHost
 $ make
 \end{verbatim}
@@ -1181,6 +1185,7 @@ DMR を取り巻く状況は日々変化しつつあり、本書の内容もす�
  \item[20210703] TYT MD-380 の販売状況について追記。URL と Raspberry Pi Desktop の ISO イメージファイル名および操作方法を 2021-01-11-raspios-buster-i386.iso に合わせて修正。VMware Player の操作方法は 16.x 向けに修正。MMVDM.ini の設定例を修正 (設定内容は変わらず)。
  \item[20220227] USB 非対応版 JumboSPOT を使用する場合の補足を追加。
  \item[20220320] 仮想 Linux マシンに使用するディストリビューションを Debian Buster with Raspberry Pi Desktop (32bit) から Debian-11.2 (64bit) に変更。MMDVM.ini の設定内容見直し。
+ \item[20241012] 警告事項、USB 非対応版 JumboSPOT を使用する場合への追記、JumboSPOT ファームウェアの更新方法に関する補足を追加。
 \end{description}
 
 \appendix
@@ -1420,9 +1425,87 @@ JumboSPOT を搭載して USB-UART を接続し、PC 上の MMDVMHost から制�
 
 なお、USB 接続に対応した JumboSPOT は \verb+/dev/ttyACM0+ に接続されますが、USB-UART を使用して接続した場合は \verb+/dev/ttyUSB0+ となる場合もあるので注意が必要です\footnote{USB-CDC (Communication Device Class) に準拠したデバイスでは \tt{/dev/ttyACM0} となりますが、そうでない場合は \tt{/dev/ttyUSB0} となります。}。
 
+2024 年 10 月の時点においては、AliExpress で no-pi-spot (\url{https://github.com/yl3im/no-pi-spot}) を製品化したものが販売されているため、自作せずとも済む状況になっています。
+
 \section{参考文献}
 \begin{description}[style=nextline]
  \item [JumboSPOT+bluetooth] \url{http://jg3ebb.mydns.jp/html/art/00089.html}
 \end{description}
+
+\chapter{JumboSPOT ファームウェアの書き換え}
+
+JumboSPOT ファームウェアは比較的安定していると言える状況にありますが、新しいデジタルモード (例えば M17\footnote{\url{https://m17project.org/}}) が追加された場合は MMDVMHost だけでなく JumboSPOT の対応も要求されるため、ファームウェアの書き換えが必要となります。本章では、JumboSPOT ファームウェアをソースコードからビルドして書き換える手順について説明します。
+
+\section{ファームウェアをビルドするための準備}
+
+MMDVMHost のコンパイルと同様に build-essential および git パッケージが必須となりますが、これに加えてコンパイル用のツールチェインとなる gcc-arm-none-eabi および書き込みツールとなる stlink-tools が必要となります。
+
+\begin{verbatim}
+# apt-get update
+# apt-get upgrade
+\end{verbatim}
+\begin{itemize}
+ \renewcommand{\labelitemi}{$\triangleright$}
+ \item 続行しますか? [Y/n] の問いがあれば \verb+y+
+\end{itemize}
+\begin{verbatim}
+# apt-get install build-essential git gcc-arm-none-eabi stlink-tools
+\end{verbatim}
+\begin{itemize}
+ \renewcommand{\labelitemi}{$\triangleright$}
+ \item 続行しますか? [Y/n] の問いがあれば \verb+y+
+\end{itemize}
+
+Raspberry Pi に JumboSPOT を接続し、Pi-Star などのソフトウェアを使用する場合は特別な道具を用意しなくても JumboSPOT ファームウェアを更新することができますが、Raspberry Pi を使わずに更新する場合は ST-LINK/V2 と呼ばれる書き込みツールを用意する必要があります。純正品は高いため、AliExpress などで売られている安価な互換品で十分対応できます。
+
+\section{MMDVM\_HS のコンパイル}
+
+ファームウェア (MMDVM\_HS) をダウンロードします。STM32F10X\_Lib をサブモジュールとして含んでいますので、git のオプションに必ず \verb+--recursive+ を指定してください。
+
+\begin{verbatim}
+$ cd ~
+$ git clone --recursive https://github.com/juribeparada/MMDVM_HS
+$ cd MMDVM_HS
+\end{verbatim}
+
+使用する MMDVM ボードに応じた設定は、Config.h で行います。ソースコードはすべて git の管理下にあるためバックアップを残す必要はありませんが、念のため元の Config.h を残し、JumboSPOT 向けの設定を configs ディレクトリからコピー (とリネーム) して用意します。
+
+\begin{verbatim}
+$ mv Config.h Config.h.orig
+$ cp configs/MMDVM_HS_Hat.h Config.h
+\end{verbatim}
+
+用意した Config.h は基本的にそのままで動作するようになっていますが、以下の部分については JumboSPOT の接続形態 (GPIO/USB) に応じた設定が必要となります。
+
+\begin{verbatim}
+// Host communication selection:
+#define STM32_USART1_HOST
+// #define STM32_USB_HOST
+// #define STM32_I2C_HOST
+\end{verbatim}
+\begin{itemize}
+ \renewcommand{\labelitemi}{$\triangleright$}
+ \item GPIO (UART) 接続の場合は \tt{\#define STM32\_USART1\_HOST} を、USB 接続の場合は \tt{\#define STM32\_USB\_HOST} と \tt{\#define LONG\_USB\_RESET} を有効にします
+\end{itemize}
+
+本書では触れませんでしたが、JumboSPOT 上の LCD 接続用 UART コネクタに LCD パネルを接続し\footnote{Nextion Display が非常に有名ですが、詳細については省略します。}、様々なステータスの表示を行うことができるようになっています。パネルを繋ぐ予定がある場合は、\verb+SERIAL_REPEATER_BAUD+ の設定が使用するパネル (の通信速度) に合致するよう、確認しておきましょう。
+
+\begin{verbatim}
+// Enable Nextion LCD serial port repeater on USART2 (ZUMspot Libre Kit and ZUMspot RPi):
+#define SERIAL_REPEATER
+#define SERIAL_REPEATER_BAUD 9600
+\end{verbatim}
+
+あとは
+
+\begin{verbatim}
+$ make nobl
+\end{verbatim}
+
+でビルドを行います。エラー無くビルドが行えたら JumboSPOT の Pin 38, 40 をショートさせ、ST-LINK と JumboSPOT の Vcc(3.3V), GND, DIO, CLK を結線し、ST-LINK をパソコンに接続して以下のコマンドを実行します。\footnote{ST-LINK による書き換えを前提としているためにこの形式としていますが、Pi-Star などのソフトウェアから書き換える場合は適当なブートローダを書き込んだ上で \tt{make bl; st-flash write mmdvm\_f1bl.bin 0x08002000} としてください。}
+
+\begin{verbatim}
+$ st-flash write mmdvm_f1nobl.bin 0x08000000
+\end{verbatim}
 
 \end{document}
